@@ -17,10 +17,9 @@ setuptools.setup(
     install_requires=[
         "torch~=1.5.1",
         "torchvision~=0.6.1",
-        "setuptools~=50.3.2",
         "numpy~=1.18.1",
         "pandas~=1.2.4",
         "pyparsing~=2.4.7",
-        "scipy~=1.6.3",
+        "dgl~=0.6.1",
     ],
 )
