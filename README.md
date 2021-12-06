@@ -27,6 +27,9 @@ as well as the requirements listed in `requirements.txt`
 pip install -r requirements.txt
 ```
 
+### Datasets
+The datasets used in the tasks used to evaluate DeepStochLog can be found in our [initial release](https://github.com/ML-KULeuven/deepstochlog/releases/tag/0.0.1).
+
 ### Addition example
 
 To see DeepStochLog in action, navigate to `examples/addition` and run `addition.py`.
