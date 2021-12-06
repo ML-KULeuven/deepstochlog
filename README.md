@@ -12,9 +12,10 @@ sudo apt-get install swi-prolog
 ```
 
 ### Installing DeepStochLog package
-To install DeepStochLog itself, you can download this repository and run the following command:
+To install DeepStochLog itself, run the following command:
+
 ```
-python setup.py install
+pip install deepstochlog
 ```
 
 ## Running the examples
