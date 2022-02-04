@@ -1,5 +1,12 @@
 # DeepStochLog
 
+DeepStochLog is a neuro-symbolic framework that combines grammars, logic, probabilities and neural networks.
+By writing a DeepStochLog program, one can train a neural network with the given background knowledge.
+One can express symbolic information about subsymbolic data in DeepStochLog and help train neural networks more efficiently this way.
+For example, if the training data is made up of handwritten digit images, and we know the sum of these digits but not the individual numbers, one can express this relation in DeepStochLog and train the neural networks much faster.
+
+DeepStochLog uses a stochastic logic approach to encoding the probabilistic logic, and is thus faster than and can deal with longer inputs than its sibling DeepProbLog in our experiments.
+
 ## Installation
 
 ### Installing SWI Prolog
