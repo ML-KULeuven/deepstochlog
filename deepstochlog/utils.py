@@ -386,7 +386,7 @@ def format_results(
 def create_run_test_query(
     model: DeepStochLogModel,
     test_data: Sequence,
-    test_example_idx: int = None,
+    test_example_idx: Union[int, Iterable[int]] = None,
     verbose: bool = False,
     parse_is_nnleaf_outputs=False,
     generation_output_accuracy=True,
