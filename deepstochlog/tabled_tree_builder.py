@@ -226,9 +226,9 @@ class TabledAndOrTreeBuilder:
             if not prolog_result:
                 raise RuntimeWarning(
                     "There was a problem when proving the terms, as the Prolog output is empty.\n"
-                    "Please check if your DeepStochLog Prolog program is valid,"
+                    "Please check if your DeepStochLog Prolog program is valid, "
                     "and if these terms can be proved with it:"
-                    "Terms:\n" + str(input_terms)
+                    "\nTerms:\n" + str(input_terms)
                 )
 
             """The program writes on each line of the file a list with two elements (key, value) of the table.
