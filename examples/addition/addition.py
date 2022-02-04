@@ -117,14 +117,12 @@ def run(
     # Setting seed for reproducibility
     set_fixed_seed(seed)
 
-    # Load the MNIST model, and Adam optimiser
-    mnist_network = MNISTNet()
-
     # Create a network object, containing the MNIST network and the index list
     mnist_classifier = Network(
-        "number", mnist_network, index_list=[Term(str(i)) for i in range(10)]
+        "number", MNISTNet(), index_list=[Term(str(i)) for i in range(10)]
     )
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    networks = NetworkStore(mnist_classifier)
 
     # Load the model "addition.pl" with this MNIST network
     query = Term(
@@ -133,7 +131,6 @@ def run(
         Term(str(digit_length)),
         argument_lists[digit_length],
     )
-    networks = NetworkStore(mnist_classifier)
 
     grounding_start = time()
     model = DeepStochLogModel.from_file(
