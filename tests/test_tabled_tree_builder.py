@@ -247,10 +247,23 @@ class AndOrTreeTest(unittest.TestCase):
 
         self.assertEqual(and_or_tree, hardcoded_domains_and_or_tree)
 
+    def test_loading_program(self):
+        program_str = """
+        0.1 :: is_number --> [3].
+        0.9 :: is_number --> [4].
+        two_numbers --> is_number, is_number.
+        """
+
+        query = Term("two_numbers", List(Term("3"), Term("4")))
+
+        model: DeepStochLogModel = DeepStochLogModel.from_string(
+            program_str, query=query, networks=NetworkStore()
+        )
+
     def test_static_probabilities(self):
         program_str = """
-        0.1 :: is_number-->[3].
-        0.9 :: is_number-->[4].
+        0.1 :: is_number --> [3].
+        0.9 :: is_number --> [4].
         two_numbers --> is_number, is_number.
         """
 
