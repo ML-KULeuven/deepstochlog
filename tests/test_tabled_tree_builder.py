@@ -101,7 +101,7 @@ addition(N) --> is_number(N1),
 
 class AndOrTreeTest(unittest.TestCase):
     def test_addition(self):
-        """ FIRST WE DEFINE THE PROGRAM"""
+        # FIRST WE DEFINE THE PROGRAM
         tabled_program = create_addition_program()
         and_or_tree = tabled_program._and_or_tree
 
