@@ -1,3 +1,5 @@
+import atexit
+import sys
 import tempfile
 import re
 import os
@@ -87,15 +89,18 @@ class PrologSolver:
         )
 
     def _run_prolog(self, program):
-        file_content = program.encode()
-        with tempfile.NamedTemporaryFile() as fo:
-            fo.write(file_content)
+        # file_content = program.encode()
+        fo_path = _temporary_filename(suffix="pl", text=True)
+        # with tempfile.NamedTemporaryFile() as fo:
+        with open(fo_path, "w") as fo:
+            fo.write(program)
             fo.flush()
-            with tempfile.NamedTemporaryFile() as log:
+            log_path = _temporary_filename(suffix="pl", text=True)
+            with open(log_path, "r") as log:
                 cmd = f"swipl -q -f {fo.name} -t main > {log.name}"
                 os.system(cmd)
                 log.flush()
-                res = [line.decode("UTF-8").replace("\n", "") for line in log]
+                res = [line.replace("\n", "") for line in log.readlines()]
 
         return res
 
@@ -364,3 +369,30 @@ def _parse_term_from_lists(
     if functor == "list":
         return term.List(*remaining_arguments)
     return Term(functor, *remaining_arguments)
+
+
+def _temporary_filename(
+    prefix=None, suffix="tmp", dir=None, text=False, remove_on_exit=True
+):
+    """Returns a temporary filename that, like mkstemp(3), will be secure in
+    its creation.  The file will be closed immediately after it's created, so
+    you are expected to open it afterwards to do what you wish.  The file
+    will be removed on exit unless you pass removeOnExit=False.  (You'd think
+    that amongst the myriad of methods in the tempfile module, there'd be
+    something like this, right?  Nope.)"""
+
+    if prefix is None:
+        prefix = "%s_%d_" % (os.path.basename(sys.argv[0]), os.getpid())
+
+    (fileHandle, path) = tempfile.mkstemp(
+        prefix=prefix, suffix=suffix, dir=dir, text=text
+    )
+    os.close(fileHandle)
+
+    def remove_file(path):
+        os.remove(path)
+
+    if remove_on_exit:
+        atexit.register(remove_file, path)
+
+    return path
