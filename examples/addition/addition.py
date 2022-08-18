@@ -48,7 +48,7 @@ class GreedyEvaluation:
 
         for term in data:
             res = []
-            for i, (id, tensor) in enumerate(term.context._context.items()):
+            for tensor in term.context._context.values():
                 n = torch.argmax(
                     number.neural_model(tensor.unsqueeze(dim=0).to(self.device)).cpu()
                 ).numpy()
