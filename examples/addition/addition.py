@@ -43,32 +43,51 @@ class GreedyEvaluation:
         self.test_accuracy = 0.0
         self.device = device
 
-    def _calculate_addition(self, predicted_digits):
+    def calculate_prediction(self, predicted_digits: List[Term]):
+        """
+        This function has to map a list of predicted terms to its prediction according to
+        the predicate it's trying to solve in a greedy way.
+        """
         current_digit_position = self.digit_length
         result = 0
         for i in range(len(predicted_digits) // 2):
             current_digit_position = current_digit_position - 1
-            digits_in_position = [predicted_digits[i], predicted_digits[i + self.digit_length]]
+            digits_in_position = [
+                int(predicted_digits[i].functor),
+                int(predicted_digits[i + self.digit_length].functor),
+            ]
             result = result + sum(digits_in_position) * (10 ** current_digit_position)
         return int(result)
+
+    def map_to_required_neural_network(self, tensor_sequence: List[torch.Tensor]) -> List[Network]:
+        """
+        This function has to map a list of tensors to the neural networks from the NeuralStore
+        that must be used to label the tensor.
+        """
+        return len(tensor_sequence) * [self.store.networks["number"]]
 
     def _calculate_accuracy(self, data: Iterable[ContextualizedTerm]):
         evaluations = []
 
-        neural_network = self.store.networks["number"]
         for ct in data:
-            predicted_digits: List[torch.Tensor] = []
-            for tensor in ct.context.get_all_values():
+            predicted_terms: List[Term] = []
+            tensors = ct.context.get_all_values()
+            for tensor, network in zip(
+                tensors, self.map_to_required_neural_network(tensors)
+            ):
                 # Predict the digit for this tensor
-                predicted_digit = torch.argmax(
-                    neural_network.neural_model(tensor.unsqueeze(dim=0).to(self.device)).cpu()
-                ).numpy()
+                predicted_idx = torch.argmax(
+                    network.neural_model(
+                        tensor.unsqueeze(dim=0).to(self.device)
+                    )
+                ).cpu().numpy()
+                predicted_term = network.idx2term(predicted_idx)
                 # Append all
-                predicted_digits.append(predicted_digit)
+                predicted_terms.append(predicted_term)
 
-            predicted_addition = self._calculate_addition(predicted_digits)
+            prediction = self.calculate_prediction(predicted_terms)
             ground_truth = int(ct.term.arguments[0].functor)
-            evaluations.append(int(ground_truth == predicted_addition))
+            evaluations.append(int(ground_truth == prediction))
         s = np.mean(evaluations)
         return s
 
