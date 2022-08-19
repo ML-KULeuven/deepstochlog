@@ -194,6 +194,8 @@ class DeepStochLogTrainer:
                         instances_since_last_log,
                         self.accuracy_tester_fn(),
                     )
+                    # Set back to train mode and reset loss
+                    model.neural_networks.train()
                     total_loss = 0
                     instances_since_last_log = 0
 

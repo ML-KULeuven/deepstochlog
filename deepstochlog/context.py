@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Iterable
 
 import torch
 from torch import Tensor
@@ -30,8 +30,11 @@ class Context:
 
         return self._context[term]
 
-    def get_all_tensor_representations(self, network_input_args) -> List[Tensor]:
+    def get_all_tensor_representations(self, network_input_args: Iterable[Term]) -> List[Tensor]:
         return [self.get_tensor_representation(term) for term in network_input_args]
+
+    def get_all_values(self):
+        return self._context.values()
 
     def __eq__(self, other):
         if isinstance(other, Context):
