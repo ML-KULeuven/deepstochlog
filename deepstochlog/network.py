@@ -69,3 +69,11 @@ class NetworkStore:
         return NetworkStore(
             *(list(self.networks.values()) + list(other.networks.values()))
         )
+
+    def train(self):
+        for network in self.networks.values():
+            network.neural_model.train()
+
+    def eval(self):
+        for network in self.networks.values():
+            network.neural_model.eval()
