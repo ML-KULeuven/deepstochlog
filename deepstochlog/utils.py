@@ -464,6 +464,9 @@ class GreedyEvaluation:
         """
         raise NotImplementedError("Please implement the map_to_required_neural_network method of the greedy evaluation")
 
+    def _idx2term(self, predicted_idx: int, network: "Network"):
+        return network.idx2term(predicted_idx)
+
     def _calculate_accuracy(self, data: Iterable[ContextualizedTerm]):
         evaluations = []
 
@@ -479,7 +482,7 @@ class GreedyEvaluation:
                         tensor.unsqueeze(dim=0).to(self.device)
                     )
                 ).cpu().numpy()
-                predicted_term = network.idx2term(predicted_idx)
+                predicted_term = self._idx2term(predicted_idx, network)
                 # Append all
                 predicted_terms.append(predicted_term)
 

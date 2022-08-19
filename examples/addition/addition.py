@@ -34,9 +34,12 @@ class GreedyAdditionEvaluation(GreedyEvaluation):
         store: NetworkStore,
         device,
     ):
-
         super().__init__(validation_data, test_data, store, device)
         self.digit_length = digit_length
+        self.required_neural_networks = (digit_length*2) * [self.store.networks["number"]]
+
+    def _idx2term(self, predicted_idx: int, network: "Network"):
+        return predicted_idx
 
     def calculate_prediction(self, predicted_digits: List[Term]):
         """
@@ -48,8 +51,8 @@ class GreedyAdditionEvaluation(GreedyEvaluation):
         for i in range(len(predicted_digits) // 2):
             current_digit_position = current_digit_position - 1
             digits_in_position = [
-                int(predicted_digits[i].functor),
-                int(predicted_digits[i + self.digit_length].functor),
+                predicted_digits[i],
+                predicted_digits[i + self.digit_length],
             ]
             result = result + sum(digits_in_position) * (10 ** current_digit_position)
         return int(result)
@@ -61,7 +64,7 @@ class GreedyAdditionEvaluation(GreedyEvaluation):
         This function has to map a list of tensors to the neural networks from the NeuralStore
         that must be used to label the tensor.
         """
-        return len(tensor_sequence) * [self.store.networks["number"]]
+        return self.required_neural_networks
 
 
 def create_parse(term: Term, logic_node: Iterable[LogicNode], networks: NetworkStore):
