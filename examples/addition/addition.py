@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List
 import numpy as np
 
+from deepstochlog.context import ContextualizedTerm
 from examples.addition.addition_data import AdditionDataset, argument_lists
 import torch
 from torch.optim import Adam
@@ -16,7 +17,7 @@ from deepstochlog.utils import (
 )
 from deepstochlog.dataloader import DataLoader
 from deepstochlog.model import DeepStochLogModel
-from deepstochlog.term import Term, List
+from deepstochlog.term import Term
 from deepstochlog.trainer import DeepStochLogTrainer, print_logger
 from deepstochlog.logic import NNLeaf, LogicNode
 
@@ -24,53 +25,64 @@ root_path = Path(__file__).parent
 
 
 class GreedyEvaluation:
-    def __init__(self, digit_length, valid_data, test_data, store, device):
+    def __init__(
+        self,
+        digit_length: int,
+        validation_data: Iterable[ContextualizedTerm],
+        test_data: Iterable[ContextualizedTerm],
+        store: NetworkStore,
+        device,
+    ):
 
         self.digit_length = digit_length
-        self.valid_data = valid_data
+        self.validation_data = validation_data
         self.test_data = test_data
         self.store = store
         self.header = "Val acc\tTest acc"
-        self.max_val = 0.0
-        self.test_acc = 0.0
+        self.max_validation_accuracy = 0.0
+        self.test_accuracy = 0.0
         self.device = device
 
-    def _addition(self, l, n):
-        res = 0
-        for i in range(len(l) // 2):
-            n = n - 1
-            li = [l[i], l[i + self.digit_length]]
-            res = res + sum(li) * (10 ** (n))
-        return int(res)
+    def _calculate_addition(self, predicted_digits):
+        current_digit_position = self.digit_length
+        result = 0
+        for i in range(len(predicted_digits) // 2):
+            current_digit_position = current_digit_position - 1
+            digits_in_position = [predicted_digits[i], predicted_digits[i + self.digit_length]]
+            result = result + sum(digits_in_position) * (10 ** current_digit_position)
+        return int(result)
 
-    def _acc(self, data, number):
+    def _calculate_accuracy(self, data: Iterable[ContextualizedTerm]):
         evaluations = []
 
-        for term in data:
-            res = []
-            for tensor in term.context._context.values():
-                n = torch.argmax(
-                    number.neural_model(tensor.unsqueeze(dim=0).to(self.device)).cpu()
+        neural_network = self.store.networks["number"]
+        for ct in data:
+            predicted_digits: List[torch.Tensor] = []
+            for tensor in ct.context.get_all_values():
+                # Predict the digit for this tensor
+                predicted_digit = torch.argmax(
+                    neural_network.neural_model(tensor.unsqueeze(dim=0).to(self.device)).cpu()
                 ).numpy()
-                res.append(n)
+                # Append all
+                predicted_digits.append(predicted_digit)
 
-            res = self._addition(res, self.digit_length)
-            ground = int(term.term.arguments[0].functor)
-            evaluations.append(int(ground == res))
+            predicted_addition = self._calculate_addition(predicted_digits)
+            ground_truth = int(ct.term.arguments[0].functor)
+            evaluations.append(int(ground_truth == predicted_addition))
         s = np.mean(evaluations)
         return s
 
     def __call__(self):
-        number = self.store.networks["number"]
-        number.neural_model.eval()
+        # Get the digit prediction neural network and set it to evaluate
+        self.store.eval()
 
-        valid_acc = self._acc(self.valid_data, number)
-        if valid_acc >= self.max_val:
-            self.test_acc = self._acc(self.test_data, number)
-            self.max_val = valid_acc
+        validation_accuracy = self._calculate_accuracy(self.validation_data)
+        if validation_accuracy >= self.max_validation_accuracy:
+            self.test_accuracy = self._calculate_accuracy(self.test_data)
+            self.max_validation_accuracy = validation_accuracy
 
-        number.neural_model.train()
-        return "%s\t%s\t" % (str(valid_acc), str(self.test_acc))
+        # number_nn.neural_model.train()
+        return "%s\t%s\t" % (str(validation_accuracy), str(self.test_accuracy))
 
 
 def create_parse(term: Term, logic_node: Iterable[LogicNode], networks: NetworkStore):
