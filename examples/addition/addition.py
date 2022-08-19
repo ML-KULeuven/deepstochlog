@@ -14,6 +14,7 @@ from deepstochlog.utils import (
     set_fixed_seed,
     create_run_test_query,
     create_model_accuracy_calculator,
+    GreedyEvaluation,
 )
 from deepstochlog.dataloader import DataLoader
 from deepstochlog.model import DeepStochLogModel
@@ -24,7 +25,7 @@ from deepstochlog.logic import NNLeaf, LogicNode
 root_path = Path(__file__).parent
 
 
-class GreedyEvaluation:
+class GreedyAdditionEvaluation(GreedyEvaluation):
     def __init__(
         self,
         digit_length: int,
@@ -34,14 +35,8 @@ class GreedyEvaluation:
         device,
     ):
 
+        super().__init__(validation_data, test_data, store, device)
         self.digit_length = digit_length
-        self.validation_data = validation_data
-        self.test_data = test_data
-        self.store = store
-        self.header = "Val acc\tTest acc"
-        self.max_validation_accuracy = 0.0
-        self.test_accuracy = 0.0
-        self.device = device
 
     def calculate_prediction(self, predicted_digits: List[Term]):
         """
@@ -59,49 +54,14 @@ class GreedyEvaluation:
             result = result + sum(digits_in_position) * (10 ** current_digit_position)
         return int(result)
 
-    def map_to_required_neural_network(self, tensor_sequence: List[torch.Tensor]) -> List[Network]:
+    def map_to_required_neural_network(
+        self, tensor_sequence: List[torch.Tensor]
+    ) -> List[Network]:
         """
         This function has to map a list of tensors to the neural networks from the NeuralStore
         that must be used to label the tensor.
         """
         return len(tensor_sequence) * [self.store.networks["number"]]
-
-    def _calculate_accuracy(self, data: Iterable[ContextualizedTerm]):
-        evaluations = []
-
-        for ct in data:
-            predicted_terms: List[Term] = []
-            tensors = ct.context.get_all_values()
-            for tensor, network in zip(
-                tensors, self.map_to_required_neural_network(tensors)
-            ):
-                # Predict the digit for this tensor
-                predicted_idx = torch.argmax(
-                    network.neural_model(
-                        tensor.unsqueeze(dim=0).to(self.device)
-                    )
-                ).cpu().numpy()
-                predicted_term = network.idx2term(predicted_idx)
-                # Append all
-                predicted_terms.append(predicted_term)
-
-            prediction = self.calculate_prediction(predicted_terms)
-            ground_truth = int(ct.term.arguments[0].functor)
-            evaluations.append(int(ground_truth == prediction))
-        s = np.mean(evaluations)
-        return s
-
-    def __call__(self):
-        # Get the digit prediction neural network and set it to evaluate
-        self.store.eval()
-
-        validation_accuracy = self._calculate_accuracy(self.validation_data)
-        if validation_accuracy >= self.max_validation_accuracy:
-            self.test_accuracy = self._calculate_accuracy(self.test_data)
-            self.max_validation_accuracy = validation_accuracy
-
-        # number_nn.neural_model.train()
-        return "%s\t%s\t" % (str(validation_accuracy), str(self.test_accuracy))
 
 
 def create_parse(term: Term, logic_node: Iterable[LogicNode], networks: NetworkStore):
@@ -193,7 +153,9 @@ def run(
     test_dataloader = DataLoader(test_data, batch_size=test_batch_size)
 
     if greedy:
-        g = GreedyEvaluation(digit_length, val_data, test_data, networks, device=device)
+        g = GreedyAdditionEvaluation(
+            digit_length, val_data, test_data, networks, device=device
+        )
         calculate_model_accuracy = g.header, g
 
         # Train the DeepStochLog model

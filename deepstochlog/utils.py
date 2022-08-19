@@ -434,6 +434,82 @@ class Capturing(list):
         sys.stdout = self._stdout
 
 
+class GreedyEvaluation:
+    def __init__(
+        self,
+        validation_data: Iterable[ContextualizedTerm],
+        test_data: Iterable[ContextualizedTerm],
+        store: NetworkStore,
+        device,
+    ):
+        self.validation_data = validation_data
+        self.test_data = test_data
+        self.store = store
+        self.header = "Val acc\tTest acc"
+        self.max_validation_accuracy = 0.0
+        self.test_accuracy = 0.0
+        self.device = device
+
+    def calculate_prediction(self, predicted_digits: List[Term]):
+        """
+        This function has to map a list of predicted terms to its prediction according to
+        the predicate it's trying to solve in a greedy way.
+        """
+        raise NotImplementedError("Please implement the calculate_prediction method of the greedy evaluation")
+
+    def map_to_required_neural_network(self, tensor_sequence: List[torch.Tensor]) -> List["Network"]:
+        """
+        This function has to map a list of tensors to the neural networks from the NeuralStore
+        that must be used to label the tensor.
+        """
+        raise NotImplementedError("Please implement the map_to_required_neural_network method of the greedy evaluation")
+
+    def _calculate_accuracy(self, data: Iterable[ContextualizedTerm]):
+        evaluations = []
+
+        for ct in data:
+            predicted_terms: List[Term] = []
+            tensors = ct.context.get_all_values()
+            for tensor, network in zip(
+                tensors, self.map_to_required_neural_network(tensors)
+            ):
+                # Predict the digit for this tensor
+                predicted_idx = torch.argmax(
+                    network.neural_model(
+                        tensor.unsqueeze(dim=0).to(self.device)
+                    )
+                ).cpu().numpy()
+                predicted_term = network.idx2term(predicted_idx)
+                # Append all
+                predicted_terms.append(predicted_term)
+
+            prediction = self.calculate_prediction(predicted_terms)
+            ground_truth = int(ct.term.arguments[0].functor)
+            evaluations.append(int(ground_truth == prediction))
+        s = np.mean(evaluations)
+        return s
+
+    def __call__(self):
+        # Get the digit prediction neural network and set it to evaluate
+        self.store.eval()
+
+        validation_accuracy = self._calculate_accuracy(self.validation_data)
+        if validation_accuracy >= self.max_validation_accuracy:
+            self.test_accuracy = self._calculate_accuracy(self.test_data)
+            self.max_validation_accuracy = validation_accuracy
+
+        # number_nn.neural_model.train()
+        return "%s\t%s\t" % (str(validation_accuracy), str(self.test_accuracy))
+
+
+
+
+
+
+
+
+
+
 # ======================================================================================
 # DEPRECATED CODE BELOW
 # From when using Terms with probabilities.
