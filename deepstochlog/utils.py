@@ -263,7 +263,7 @@ def set_fixed_seed(seed=42):
 def create_model_accuracy_calculator(
     model: DeepStochLogModel,
     test_dataloader: DataLoader,
-    start_time,
+    start_time=0,
     val_dataloader: DataLoader = None,
     generation_output_accuracy=True,
     most_probable_parse_accuracy=False,

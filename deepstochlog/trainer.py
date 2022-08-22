@@ -24,8 +24,7 @@ class DeepStochLogLogger:
         raise NotImplementedError()
 
     def print(
-        self,
-        line: str,
+        self, line: str,
     ):
         print(line)
 

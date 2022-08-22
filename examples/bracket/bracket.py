@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 import torch
 from torch.optim import Adam
@@ -8,7 +7,6 @@ from time import time
 from examples.bracket.bracket_data import BracketDataset
 from deepstochlog.network import Network, NetworkStore
 from examples.models import MNISTNet
-from deepstochlog.nn_models import TrainableProbability
 from deepstochlog.utils import (
     set_fixed_seed,
     create_run_test_query,
