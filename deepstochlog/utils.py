@@ -462,6 +462,8 @@ class GreedyEvaluation:
         This function has to map a list of tensors to the neural networks from the NeuralStore
         that must be used to label the tensor.
         """
+        if len(self.store.networks) == 1:
+            return len(tensor_sequence) * [self.store.networks[0]]
         raise NotImplementedError("Please implement the map_to_required_neural_network method of the greedy evaluation")
 
     def _idx2term(self, predicted_idx: int, network: "Network"):
