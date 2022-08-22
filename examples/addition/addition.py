@@ -67,14 +67,12 @@ class GreedyAdditionEvaluation(GreedyEvaluation):
         return self.required_neural_networks
 
 
-def create_parse(term: Term, logic_node: Iterable[LogicNode], networks: NetworkStore):
+def show_addition_parse(term: Term, logic_node: Iterable[LogicNode], networks: NetworkStore):
     elements = dict()
     for nnleaf in logic_node:
-        # elements[nnleaf.inputs[0]] = networks.get_network(nnleaf.network).idx2term(
-        #     nnleaf.index
-        # )
         if isinstance(nnleaf, NNLeaf):
-            elements[nnleaf.inputs[0].functor] = str(nnleaf.index)
+            nnleaf_name = nnleaf.inputs[0].functor
+            elements[nnleaf_name] = str(nnleaf.index)
 
     digits = []
     for token in sorted(elements.keys()):
@@ -176,14 +174,14 @@ def run(
             test_data=test_data,
             test_example_idx=test_example_idx,
             verbose=verbose,
-            create_parse=create_parse,
+            create_parse=show_addition_parse,
         )
         calculate_model_accuracy = create_model_accuracy_calculator(
             model,
             test_dataloader,
             start_time,
             val_dataloader=val_dataloader,
-            create_parse=create_parse,
+            create_parse=show_addition_parse,
             most_probable_parse_accuracy=most_probable_parse_accuracy,
         )
 
