@@ -50,16 +50,16 @@ The neural probability `nn(number, [X], Y, digit)` makes the neural network with
 
 ## Credits & Paper citation
 
-If use this work in an academic context, please consider citing [the following paper](https://arxiv.org/abs/2106.12574):
-
-The paper is also accepted to [AAAI22](https://aaai.org/Conferences/AAAI-22/).
-Please cite that version of the paper when the proceedings are out.
+If use this work in an academic context, please consider citing [the following paper](https://ojs.aaai.org/index.php/AAAI/article/view/21248):
 
 ```
-@article{winters2021deepstochlog,
+@inproceedings{winters2022deepstochlog,
   title={Deepstochlog: Neural stochastic logic programming},
   author={Winters, Thomas and Marra, Giuseppe and Manhaeve, Robin and De Raedt, Luc},
-  journal={arXiv preprint arXiv:2106.12574},
-  year={2021}
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={36},
+  number={9},
+  pages={10090--10100},
+  year={2022}
 }
 ```
