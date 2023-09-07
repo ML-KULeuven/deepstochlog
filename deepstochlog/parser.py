@@ -15,7 +15,7 @@ from pyparsing import (
     Regex,
     Or,
     Forward,
-    ParseException,
+    ParseException, QuotedString,
 )
 
 from deepstochlog.rule import (
@@ -67,11 +67,12 @@ def create_rules_parser():
 
     any_probability = static_probability | variable_probability | trainable_probability | neural_probability
 
-    
+
     term_forward = Forward()
+    list_term_content = term_forward + Optional(Suppress(",") + term_forward)
     list_term = Group(Suppress("[")
                       + delimitedList(
-                        Group(term_forward + Optional("|" + term_forward))
+                        Group(list_term_content + Optional(Suppress("|") + list_term_content))
                         | "'" + any_alphanumeric_word + "'")
                       + Suppress("]"))
     term = (any_alphanumeric_word + Optional(
@@ -79,7 +80,7 @@ def create_rules_parser():
         + Group(delimitedList(Group(term_forward)).setResultsName("arguments"))
         + Suppress(")")
     )
-            ) | list_term
+            ) | list_term | QuotedString("'") | QuotedString('"')
     term_forward << term
 
     # clause = (

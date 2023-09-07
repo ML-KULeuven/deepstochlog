@@ -153,8 +153,27 @@ class ParserTestCase(unittest.TestCase):
     def test_list_argument(self):
         program_str = """
         t(_) :: a([0|Rest]) --> a(Rest).
+        t(_) :: a([0,1|Rest]) --> a(Rest).
+        """
+        program = parse_rules(program_str)
+        self.assertEqual(2, len(program.rules))
+
+    def test_list_argument_string(self):
+        program_str = """
+        t(_) :: a(['a'|Rest]) --> a(Rest).
+        t(_) :: a(["a"]) --> a(Rest).
+        t(_) :: a(["hello world!"]) --> a(Rest).
+        """
+        program = parse_rules(program_str)
+        self.assertEqual(3, len(program.rules))
+
+    def test_matrix(self):
+        program_str = """
+        t(_) :: make_matrix([0, 3|Rest], [['x', 'x', 'x']|Rest1]) --> make_matrix(Rest, Rest1).
         """
         program = parse_rules(program_str)
         self.assertEqual(1, len(program.rules))
+
+
 if __name__ == "__main__":
     unittest.main()
