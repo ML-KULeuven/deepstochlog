@@ -150,5 +150,11 @@ class ParserTestCase(unittest.TestCase):
         print(program)
 
 
+    def test_list_argument(self):
+        program_str = """
+        t(_) :: a([0|Rest]) --> a(Rest).
+        """
+        program = parse_rules(program_str)
+        self.assertEqual(1, len(program.rules))
 if __name__ == "__main__":
     unittest.main()

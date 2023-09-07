@@ -67,12 +67,19 @@ def create_rules_parser():
 
     any_probability = static_probability | variable_probability | trainable_probability | neural_probability
 
+    
     term_forward = Forward()
-    term = any_alphanumeric_word + Optional(
+    list_term = Group(Suppress("[")
+                      + delimitedList(
+                        Group(term_forward + Optional("|" + term_forward))
+                        | "'" + any_alphanumeric_word + "'")
+                      + Suppress("]"))
+    term = (any_alphanumeric_word + Optional(
         Suppress("(")
         + Group(delimitedList(Group(term_forward)).setResultsName("arguments"))
         + Suppress(")")
     )
+            ) | list_term
     term_forward << term
 
     # clause = (
